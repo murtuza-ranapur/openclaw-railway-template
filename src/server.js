@@ -1296,6 +1296,20 @@ app.use((req, res, next) => {
   return next();
 });
 
+// ── Wireframes static file server ────────────────────────────
+// Serves wireframes from /data/workspace/wireframes/ at /wireframes/*
+// Protected by SETUP_PASSWORD (same auth as /setup)
+const WIREFRAMES_DIR = path.join(
+  process.env.OPENCLAW_WORKSPACE_DIR || "/data/workspace",
+  "wireframes"
+);
+app.use("/wireframes", requireSetupAuth, express.static(WIREFRAMES_DIR, {
+  extensions: ["html", "htm"],
+  index: "index.html",
+}));
+// ── End wireframes ───────────────────────────────────────────
+
+
 app.use(async (req, res) => {
   if (!isConfigured() && !req.path.startsWith("/setup")) {
     return res.redirect("/setup");
