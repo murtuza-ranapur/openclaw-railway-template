@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# ── Ensure critical env vars are set (safety net) ─────────────
+# If Railway env vars are missing, force correct paths so OpenClaw
+# never falls back to /home/openclaw/.openclaw (which triggers setup wizard)
+export OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
+export OPENCLAW_WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/data/workspace}"
+
 # Ensure /data is owned by openclaw user and has restricted permissions
 chown openclaw:openclaw /data 2>/dev/null || true
 chmod 700 /data 2>/dev/null || true
@@ -43,11 +49,17 @@ if [ -f /data/.gog/goplaces ]; then
 fi
 
 # Set up config symlinks for openclaw user
+# (agent runs as openclaw, so configs go in /home/openclaw, NOT /root)
 OHOME="/home/openclaw"
-mkdir -p "$OHOME/.config/gogcli" "$OHOME/.config/notion" "$OHOME/.config/vodoo"
-[ -d /data/.gog/gogcli ] && ln -sf /data/.gog/gogcli "$OHOME/.config/gogcli" 2>/dev/null
-[ -f /data/.notion/api_key ] && ln -sf /data/.notion/api_key "$OHOME/.config/notion/api_key" 2>/dev/null
+mkdir -p "$OHOME/.config"
+[ -d /data/.gog/gogcli ] && rm -rf "$OHOME/.config/gogcli" && ln -sf /data/.gog/gogcli "$OHOME/.config/gogcli"
+[ -f /data/.notion/api_key ] && mkdir -p "$OHOME/.config/notion" && ln -sf /data/.notion/api_key "$OHOME/.config/notion/api_key"
 chown -R openclaw:openclaw "$OHOME/.config"
+
+# Symlink /root/.config → /home/openclaw/.config so scripts referencing /root still work
+# (startup.sh and other scripts may reference /root paths)
+mkdir -p /root
+ln -sf "$OHOME/.config" /root/.config 2>/dev/null || true
 
 # Run Bobby's startup script if it exists (sets up crontab, gmail watcher, etc.)
 if [ -f /data/scripts/startup.sh ]; then
