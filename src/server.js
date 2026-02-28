@@ -1298,16 +1298,21 @@ app.use((req, res, next) => {
 
 // ── Wireframes static file server ────────────────────────────
 // Serves wireframes from /data/workspace/wireframes/ at /wireframes/*
-// Protected by SETUP_PASSWORD (same auth as /setup)
 const WIREFRAMES_DIR = path.join(
   process.env.OPENCLAW_WORKSPACE_DIR || "/data/workspace",
   "wireframes"
 );
+// JSX source files served without auth (needed for in-browser Babel transform)
+app.use("/wireframes/jsx", express.static(path.join(WIREFRAMES_DIR, "jsx"), {
+  extensions: ["jsx", "js"],
+}));
+// Everything else (index, viewer) behind auth
 app.use("/wireframes", requireSetupAuth, express.static(WIREFRAMES_DIR, {
   extensions: ["html", "htm"],
   index: "index.html",
 }));
 // ── End wireframes ───────────────────────────────────────────
+
 
 
 app.use(async (req, res) => {
