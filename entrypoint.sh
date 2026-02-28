@@ -7,9 +7,11 @@ set -e
 export OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
 export OPENCLAW_WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/data/workspace}"
 
-# Ensure /data is owned by openclaw user and has restricted permissions
-chown openclaw:openclaw /data 2>/dev/null || true
+# Ensure /data and ALL subdirectories are owned by openclaw user
+# (fixes legacy root-owned dirs: .secrets, .gog, scripts, cron, etc.)
+chown -R openclaw:openclaw /data 2>/dev/null || true
 chmod 700 /data 2>/dev/null || true
+echo "[entrypoint] /data ownership fixed"
 
 # Persist Homebrew to Railway volume so it survives container rebuilds
 BREW_VOLUME="/data/.linuxbrew"
