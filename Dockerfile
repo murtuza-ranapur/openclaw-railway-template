@@ -79,9 +79,13 @@ ENV NODE_ENV=production
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
+    chromium \
+    cron \
     curl \
     git \
     gosu \
+    iproute2 \
+    jq \
     procps \
     python3 \
     build-essential \
